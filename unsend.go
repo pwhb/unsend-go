@@ -25,22 +25,32 @@ type Client struct {
 func NewClient() (*Client, error) {
 	ApiKey := os.Getenv(ENV_KEY_API_KEY)
 	baseURL := GetEnvOrDefault(ENV_KEY_BASE_URL, DEFAULT_BASE_URL)
+	return NewClientWithConfig(ClientConfig{
+		ApiKey:  ApiKey,
+		BaseUrl: baseURL,
+	})
+}
 
-	if strings.TrimSpace(ApiKey) == "" {
+type ClientConfig struct {
+	ApiKey  string
+	BaseUrl string
+}
+
+func NewClientWithConfig(config ClientConfig) (*Client, error) {
+	if strings.TrimSpace(config.ApiKey) == "" {
 		return nil, fmt.Errorf("no value found for API Key")
 	}
-
-	baseUrl, err := url.Parse(baseURL)
+	baseUrl, err := url.Parse(config.BaseUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &Client{
-		ApiKey: ApiKey,
+		ApiKey: config.ApiKey,
 		Client: &http.Client{
 			Timeout: time.Second * 30,
 			Transport: &UnsendTransport{
-				ApiKey: ApiKey,
+				ApiKey: config.ApiKey,
 			},
 		},
 		BaseUrl: baseUrl,
